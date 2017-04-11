@@ -28,7 +28,7 @@ export const initialState = {
 	screenSize: 0,
 	// number of presented cells
 	cellNum: 0, 
-	rightBoundary: 0, 
+	rightBoundary: 0,
 	// x coordinate of Tape Head
 	headX: 0, 
 	/*** The above four are initialized by gui.resizeScreenAndTape  ***/
@@ -149,18 +149,19 @@ function rootReducer (state=initialState, action, clearRedo) {
 	s2 = tapeReducer(s1, action, false);
 	s3 = guiReducer(s2, action);
 	s4 = machineReducer(s3, action);
-	s5 = trialReducer(s4, action);
 
 	// edit mode enhancer
-	notifyAnyChangeInEditMode(s5, action);
-	notifyAnyChangeInNormalMode(s5, action);
+	notifyAnyChangeInEditMode(s4, action);
+	notifyAnyChangeInNormalMode(s4, action);
+
+	s5 = trialReducer(s4, action);
 
 	// undor/redo/clear side effect enhancer
 	switch(action.type) {
 		case actionTypes.INITIALIZAE_MACHINE:
-			return initializeMachine(state, action);
+			return initializeMachine(s5, action);
 		case actionTypes.LOAD_MACHINE:
-			return loadMachine(state, action);
+			return loadMachine(s5, action);
 		case actionTypes.UNDO:
 			return cleanSideEffects(undo(s5, action), false);
 		case actionTypes.REDO:
@@ -180,10 +181,34 @@ function initializeMachine(state, action) {
 }
 
 function loadMachine(state, action) {
-	return gui.resizeScreenAndTape(
-		action.preloadedState, 
-		{screenWidth: window.innerWidth}
-	);
+	// new schema where the state before running and to which step we've reached were sent
+	if (action.preloadedState.step !== undefined && action.preloadedState.state !== undefined) {
+		state = gui.resizeScreenAndTape(action.preloadedState.state, {
+			screenWidth: window.innerWidth
+		});
+		let step = action.preloadedState.step;
+		while (step--) {
+			state = machine.stepHelper(state, true);
+		}
+
+	} else { // compatible with old schema where the whole state was sent
+		state = gui.resizeScreenAndTape(
+			action.preloadedState, {
+				screenWidth: window.innerWidth
+			}
+		);
+
+		// not safe
+		// state.headX = action.preloadedState.headX;
+		// state.tapePointer = action.preloadedState.tapePointer;
+	}
+
+
+	// clear side effects
+	state.highlightedRow = null;
+	state.highlightedCellOrder = null;
+
+	return state;
 }
 
 /*
@@ -221,9 +246,11 @@ function notifyAnyChangeInEditMode(state, action) {
 }
 
 function notifyAnyChangeInNormalMode(state, action) {
-
 	switch(action.type) {
-		case actionTypes.MOVE_HEAD:
+		// case actionTypes.MOVE_HEAD:
+		case actionTypes.UNDO:
+		case actionTypes.REDO:
+		
 		case actionTypes.MOVE_TAPE_RIGHT:
 		case actionTypes.MOVE_TAPE_LEFT:
 		case actionTypes.FILL_TAPE:
@@ -239,9 +266,7 @@ function notifyAnyChangeInNormalMode(state, action) {
 		case actionTypes.SET_ROW_WRITE:
 		case actionTypes.SET_ROW_NEW_STATE:
 
-		case actionTypes.PRE_STEP_FORWARD:
 		case actionTypes.STEP_FORWARD:
-		case actionTypes.RECORD_INTERVAL:
 		case actionTypes.STEP_BACK:
 		case actionTypes.RESTORE:
 		case actionTypes.SILENT_RUN:
@@ -249,9 +274,11 @@ function notifyAnyChangeInNormalMode(state, action) {
 		case actionTypes.DELETE_TRIAL:
 		case actionTypes.ADD_TRIAL:
 		case actionTypes.RUN_TRIAL:
-			state.anyChangeInNormal = true;
+		case actionTypes.LOAD_TRIAL:
+			state.anyChangeInNormal = !state.isEdittingTrial;
 			break;
-		case actionTypes.SAVE_TRIAL:
+		// should be before reducer is called
+		case actionTypes.SAVE_TRIAL: 
 			state.anyChangeInNormal = state.anyChangeInTrial;
 			break;
 		default:

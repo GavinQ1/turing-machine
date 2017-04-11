@@ -8,9 +8,14 @@ import {
 	INIT_HEAD_WIDTH,
 	INIT_HEAD_LEFT_OFFSET,
 	HEAD_MOVE_INTERVAL,
-  	HEAD_LEFT_BOUNDARY,
+	HEAD_LEFT_BOUNDARY,
 } from '../constants/components/Head';
-import { moveLeftHelper, moveRightHelper } from './tape';
+import {
+	moveLeftHelper,
+	moveRightHelper,
+	moveTapeRightHelper,
+	moveTapeLeftHelper
+} from './tape';
 
 // define helper to optimize performance
 export function adjustHeadWidthHelper(state, text) {
@@ -24,14 +29,15 @@ export function adjustHeadWidthHelper(state, text) {
 
 	// if < default text length
 	// set head view to initial head view
-	if (textLength <= defaultTextLength - 2) {
+	let charSize = 11;
+	if (textLength < defaultTextLength) {
 		newWidth = INIT_HEAD_WIDTH;
 		newLeftOffset = INIT_HEAD_LEFT_OFFSET;
 	} else {
 		// else expand head
 		let diff = textLength - defaultTextLength;
-		newWidth = INIT_HEAD_WIDTH + 10 * diff;
-		newLeftOffset = INIT_HEAD_LEFT_OFFSET - 5 * diff;
+		newWidth = INIT_HEAD_WIDTH + charSize * diff;
+		newLeftOffset = INIT_HEAD_LEFT_OFFSET - (charSize/2) * diff;
 	}
 
 	state.headWidth = newWidth;
@@ -53,7 +59,7 @@ export function adjustHeadWidth(state, action) {
 
 export function setPlayStateHelper(state, flag) {
 	if (!flag && state.interval) {
-		clearInterval(state.interval); 
+		clearInterval(state.interval);
 	}
 
 	state.isRunning = flag;
@@ -83,7 +89,7 @@ export function setAnimationSpeed(state, action) {
 		// update factor
 		animationSpeedFactor: action.percentage,
 		// calculate speed, not necessary, but would be handy to define it
-		animationSpeed: ANIMATION_SPEED / action.percentage 
+		animationSpeed: ANIMATION_SPEED / action.percentage
 	});
 }
 
@@ -142,33 +148,34 @@ General correctness proof:
 */
 export function resizeScreenAndTape(state, action) {
 	let newScreenSize = action.screenWidth;
-	let newTapeSpace = newScreenSize * 0.91 - 96;
+	let newTapeSpace = newScreenSize * 0.9 - 96;
 	let newCellNum;
 	let new_state = state;
 
 	if (newTapeSpace < TAPE_BREAK_POINT) {
-		let diff = Math.ceil((TAPE_BREAK_POINT-newTapeSpace)/50)
+		let diff = Math.ceil((TAPE_BREAK_POINT - newTapeSpace) / 50)
 		newCellNum = MAX_CELL_NUM - diff;
 		if (newCellNum <= MIN_CELL_NUM) newCellNum = MIN_CELL_NUM;
 	} else {
 		newCellNum = MAX_CELL_NUM;
 	}
 
+	if (newCellNum === state.cellNum) return new_state;
+
 	let originalPointer = new_state.tapePointer;
 
-	let midPoint = Math.floor(newCellNum/2);
+	let midPoint = Math.floor(newCellNum / 2);
 	new_state = Object.assign({}, new_state, {
 		screenSize: newScreenSize,
 		cellNum: newCellNum,
 		headX: HEAD_LEFT_BOUNDARY + midPoint * HEAD_MOVE_INTERVAL,
 		tapePointer: new_state.anchorCell + midPoint,
-		rightBoundary: HEAD_LEFT_BOUNDARY + (newCellNum-1) * HEAD_MOVE_INTERVAL,
+		rightBoundary: HEAD_LEFT_BOUNDARY + (newCellNum - 1) * HEAD_MOVE_INTERVAL,
 	});
+
 
 	let offset = new_state.tapePointer - originalPointer;
 	let moveLeft;
-
-	if (offset === 0) return new_state;
 	if (offset < 0) { // need move right
 		offset = -offset;
 		moveLeft = false;
@@ -177,22 +184,26 @@ export function resizeScreenAndTape(state, action) {
 	}
 
 	while (offset--) {
-		new_state = moveHeadHelper(new_state, moveLeft);
+		if (moveLeft)
+			new_state = moveTapeLeftHelper(new_state);
+		else
+			new_state = moveTapeRightHelper(new_state);
 	}
-	new_state.highlightedCellOrder = -1; // cancel any highlight from moveHead
+
+	new_state.highlightedCellOrder = -1; // cancel any highlight 
 
 	return new_state;
 }
 
 export function toggleTrialDrawer(state, action) {
-	let flag = (action.flag !== undefined) ? action.flag : !state.trialDrawerToggle; 
+	let flag = (action.flag !== undefined) ? action.flag : !state.trialDrawerToggle;
 	return Object.assign({}, state, {
 		trialDrawerToggle: flag,
 	});
 }
 
 export function toggleAnimation(state, action) {
-	let flag = (action.flag !== undefined) ? action.flag : !state.animationOn; 
+	let flag = (action.flag !== undefined) ? action.flag : !state.animationOn;
 	return Object.assign({}, state, {
 		animationOn: flag
 	});

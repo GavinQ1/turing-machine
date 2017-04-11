@@ -3,12 +3,27 @@ import { setInternalStateAction, highlightCorrespondingCellAction } from '../../
 import { moveHeadAction } from '../../actions/guiActions';
 import Head from '../../components/tape/Head';
 import { getAllStates } from '../table/AutoCompleteFieldContainer';
-import { HALT, standardFilter } from '../../constants/SpecialCharacters';
+import { HALT } from '../../constants/SpecialCharacters';
+import { standardFilter } from '../table/AutoCompleteFieldContainer';
 
+function pauseEvent(e){
+    if(e.stopPropagation) e.stopPropagation();
+    if(e.preventDefault) e.preventDefault();
+    e.cancelBubble=true;
+    e.returnValue=false;
+    return false;
+}
+
+function unFocus() {
+  if (document.selection) {
+    document.selection.empty()
+  } else {
+    window.getSelection().removeAllRanges()
+  }
+} 
 
 const headOnStart = (e, ui, dispatch) => {
     dispatch(highlightCorrespondingCellAction(true));
-    window.getSelection().removeAllRanges()
 }
 
 const headOnStop = (e, ui, dispatch) => {
@@ -16,13 +31,14 @@ const headOnStop = (e, ui, dispatch) => {
 }
 
 const headOnDrag = (e, ui, dispatch) => {
-  window.getSelection().removeAllRanges()
   dispatch(function(dispatch, getState) {
     if (ui.x < getState().headX)
       dispatch(moveHeadAction(true)); // left
     else if (ui.x > getState().headX)
       dispatch(moveHeadAction(false)) // right
   });
+  pauseEvent(e);
+  unFocus();
 }
 
 const onUpdateInput = (searchText, dispatch) => {
@@ -41,7 +57,6 @@ const mapStateToProps = (state, ownProps) => {
     filter: filter,
     isRunning: state.isRunning,
     rightBoundary: state.rightBoundary,
-    // fontColor: (state.tapeInternalState === HALT) ? "#FF3D00" : "#212121", //#1976D2
     fontColor: (state.tapeInternalState === HALT) ? "#1976D2" : "#212121", //#FF3D00
 
     isEdittingExpectedTape: state.isEdittingExpectedTape,
@@ -54,6 +69,7 @@ const mapStateToProps = (state, ownProps) => {
       height: state.headHeight,
       width: state.headWidth,
       left: state.headLeftOffset,
+      color: (state.tapeInternalState === HALT) ? "#1976D2" : "#212121", //#FF3D00
     }
   };
 }

@@ -16,6 +16,7 @@ import { createIdFromTimeStamp } from './utils';
 
 var MongoClient = require('mongodb').MongoClient;
 
+const POST_DATA_SIZE_LIMIE = '50mb';
 const databaseName = 'turingMachine';
 const databaseCollection = 'saves';
 const url = "mongodb://localhost:27017/" + databaseName;
@@ -27,20 +28,24 @@ app.use(webpackDevMiddleware(compiler, { noInfo: true, publicPath: webpackConfig
 app.use(webpackHotMiddleware(compiler));
 
 app.use(BodyParser.urlencoded({
-  extended: true
+  extended: true,
+  limit: POST_DATA_SIZE_LIMIE,
+  parameterLimit:50000
 }));
-app.use(BodyParser.json()); 
+app.use(BodyParser.json({limit: POST_DATA_SIZE_LIMIE})); 
 
 app.use(Express.static(path.join(__dirname + '/../../public')));
 app.use('/error', Express.static(path.join(__dirname + '/../../public')));
 
 app.get('/', function(req, res) {
-	res.sendFile(path.join(__dirname + "/../../public/index.html"));
+	// res.sendFile(path.join(__dirname + "/../../public/index.html"));
+	res.send(template({}))
 });
 
 
 app.get('/error/404', function(req, res) {
-	res.sendFile(path.join(__dirname + "/../../public/index.html"));
+	// res.sendFile(path.join(__dirname + "/../../public/index.html"));
+	res.send(template({}))
 });
 
 app.get('/:id', function(req, res) {
@@ -94,7 +99,7 @@ app.all('*', function(req, res) {
   res.redirect('/error/404');
 });
 
-var server = app.listen(3000, function() {
+var server = app.listen(80, function() {
 	// var host = server.address().address;
 	var port = server.address().port;
 

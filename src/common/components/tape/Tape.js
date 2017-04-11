@@ -63,21 +63,30 @@ class Tape extends React.Component {
               <div className="step-count"><p>Step: {this.props.stepCount}</p></div> : 
               null}
 
-            <div className="tape-with-button">
-              <div className="roll-left"><IconButton tooltip="Roll Left" 
-                onTouchTap={this.props.rollLeft} touch={true} style={TAPE_ICON_STYLES.style} 
-                iconStyle={TAPE_ICON_STYLES.mediumIcon} tooltipPosition="bottom-left" disabled={this.props.isRunning}><RollLeft /></IconButton></div>
-              <Head />
-              {populatedSquares(this.props.cellNum).map((i) => {
-                let mark = i;
-                if (i === 0) mark = MARK_FIRST;
-                if (i === this.props.cellNum - 1) mark = MARK_LAST;
-                return <Square key={standardizeCellId(i)} order={i} mark={mark} id={standardizeCellId(i)} />
-                })}
-              <div className="roll-right"><IconButton tooltip="Roll Right" 
-                onTouchTap={this.props.rollRight} touch={true} style={TAPE_ICON_STYLES.style} 
-                iconStyle={TAPE_ICON_STYLES.mediumIcon} tooltipPosition="bottom-right" disabled={this.props.isRunning}><RollRight /></IconButton>
+            <div className="whole-tape-wrapper">
+              <div className="whole-tape">
+                <Head />
+                <div className="roll-left">
+                  <IconButton tooltip="Roll Left" 
+                    onTouchTap={this.props.rollLeft} touch={true} style={TAPE_ICON_STYLES.style} 
+                    iconStyle={TAPE_ICON_STYLES.mediumIcon} tooltipPosition="bottom-left" disabled={this.props.isRunning}>
+                    <RollLeft />
+                  </IconButton>
+                </div>
+                {populatedSquares(this.props.cellNum).map((i) => {
+                  let mark = i;
+                  if (i === 0) mark = MARK_FIRST;
+                  if (i === this.props.cellNum - 1) mark = MARK_LAST;
+                  return <Square key={standardizeCellId(i)} order={i} mark={mark} id={standardizeCellId(i)} />
+                  })}
+                <div className="roll-right">
+                  <IconButton tooltip="Roll Right" 
+                    onTouchTap={this.props.rollRight} touch={true} style={TAPE_ICON_STYLES.style} 
+                    iconStyle={TAPE_ICON_STYLES.mediumIcon} tooltipPosition="bottom-right" disabled={this.props.isRunning}>
+                    <RollRight />
+                  </IconButton>
               </div>
+             </div>
             </div>
 
             {(this.props.isEdittingTrial) ? 

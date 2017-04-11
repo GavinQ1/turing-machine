@@ -23,6 +23,9 @@ read --- string, (should be from tape.read function
 
 **** Responsible for handling special character * Here **** 
 */
+
+// specific first
+
 export function matchRule(state, in_state, read) {
 	let ruleId = null;
 
@@ -35,7 +38,7 @@ export function matchRule(state, in_state, read) {
 				break;
 			} else if (row.read === STAR) { // handles *
 				ruleId = state.rowsById[i];
-				break;
+				continue;
 			}
 
 		}
@@ -123,8 +126,8 @@ export function preStep(state, action) {
 	new_state = highlightCorrespondingRuleHelper(new_state, true);
 
 	// scroll into view
-	if (new_state.highlightedRow)
-		document.getElementById(new_state.highlightedRow).scrollIntoView(false);
+	// if (new_state.highlightedRow)
+	// 	document.getElementById(new_state.highlightedRow).scrollIntoView(false);
 
 	return new_state;
 }
@@ -163,10 +166,10 @@ export function stepHelper(state, silent) { // optimize performance
 	}
 
 	// are we running without animation?
-	if (!silent) {
-		// if with animation, scroll to the highlighted rule
-		document.getElementById(highlightedRow).scrollIntoView(false);
-	}
+	// if (!silent) {
+	// 	// if with animation, scroll to the highlighted rule
+	// 	document.getElementById(highlightedRow).scrollIntoView(false);
+	// }
 
 	// cache history, and highlight rule
 	state.highlightedRow = highlightedRow;
@@ -357,7 +360,7 @@ export function restore(state, action) {
 			stepCount: cached[0].stepCount,
 
 			// run history
-			runHistory: state.runHistory.slice(0, state.runHistory.length - 1),
+			runHistory: [],
 
 			// GUI
 			highlightedRow: cached[0].highlightedRow,
@@ -389,10 +392,6 @@ export function restore(state, action) {
 				delete new_state[id];
 			i--;
 		}
-
-		// delete this cell if necessary
-		if (!new_state.tapeCellsById.includes(tape.standardizeCellId(state.tapePointer)))  
-			delete new_state[tape.standardizeCellId(state.tapePointer)];
 
 		return new_state;
 	} else {

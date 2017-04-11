@@ -11,14 +11,19 @@
   padding-top: 5px;
 }
 
-.tape-with-button {
+.whole-tape-wrapper {
   padding-top: 10px;
-  display: table;
-  width: 91%;
-  margin: 0 auto; 
+  width: 100%;
+  text-align: center;
+}
+
+.whole-tape {
+  margin: 0 auto;
+  display: inline-block;
 }
 
 .square {
+  display: inline-block;
   background: #fff;
   border: 1px solid ;
   font-size: 24px;
@@ -29,27 +34,38 @@
   margin-top: -1px;
   padding: 0;
   text-align: center;
+  outline-width: 0;
 }
 
 .roll-left {
-  display: table-cell;
-  vertical-align: middle;
-  height:135px;
+  display: inline-block;
+  height:100px;
   padding-right: 0px;
 }
 
 .roll-right {
-  display: table-cell;
-  vertical-align: middle;
-  height:135px;
+  display: inline-block;
+  height:100px;
   padding-left: 0px;
 }
 
 /***  HEAD  ***/
 
-
 .header {
-  max-width: 340px;
+  max-width: 130px;
+  text-align: left;
+  position: relative;
+}
+.header:hover {
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+.header:active { 
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
 }
 
 .hair {
@@ -64,10 +80,21 @@
   border: 1px solid black;
   font-size: 18px;
   font-weight: bold;
-  margin: 0 auto; 
   height: auto;
   position: relative;
   text-align: center;
+}
+.head:hover {
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+.head:active { 
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  pointer-events:none;
 }
 
 .neck {

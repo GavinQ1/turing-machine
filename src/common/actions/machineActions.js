@@ -1,5 +1,6 @@
 import * as actionTypes from '../constants/ActionTypes';
 import { setAnimationSpeedAction } from './guiActions';
+import { restore } from '../reducers/machine';
 
 export function initMachineAction() {
 	return {
@@ -113,10 +114,14 @@ export function saveMachineActionCreator(ownProps) {
 			ownProps.snackBarSetAnythingNewCallback(false);
 			ownProps.snackBarPopUpCallback();
 		} else {
+			// not saving runhistory or edit history
+			let state = restore(getState());
+			let step = getState().stepCount;
+
 			var post = {
 				headers: {"content-type": "application/json"},
 				method: 'POST',
-				body: JSON.stringify(getState())
+				body: JSON.stringify({state: state, step: step})
 			}
 
 			fetch('/', post).then(function(response) {
@@ -128,10 +133,8 @@ export function saveMachineActionCreator(ownProps) {
 			}).then(function(body) {
 				dispatch(goodMachineSaveAction(body.id));
 				ownProps.snackBarSetAnythingNewCallback(true);
-				ownProps.snackBarPopUpCallback();
 			}).catch(function(err) {
 				ownProps.setErrorMessageCallback(err);
-				ownProps.errorMessagePopUpCallback();
 			});
 		}
 	}
